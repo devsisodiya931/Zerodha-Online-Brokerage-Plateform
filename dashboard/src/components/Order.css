@@ -1,0 +1,112 @@
+.orders {
+  padding: 20px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.orders h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.orders table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: auto;
+  overflow-x: auto;
+}
+
+.orders th,
+.orders td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+.orders th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.no-orders {
+  text-align: center;
+  padding: 30px;
+}
+
+.btn {
+  margin-top: 15px;
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
+/* Mobile screens */
+@media (max-width: 600px) {
+  .orders h3 {
+    font-size: 1.2rem;
+  }
+
+  .orders table,
+  .orders thead,
+  .orders tbody,
+  .orders th,
+  .orders td,
+  .orders tr {
+    display: block;
+    width: 100%;
+  }
+
+  .orders thead {
+    display: none;
+  }
+
+  .orders tr {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fafafa;
+  }
+
+  .orders td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+  }
+
+  .orders td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: bold;
+    text-align: left;
+  }
+}
+
+/* Tablet */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .orders {
+    padding: 15px;
+  }
+
+  .orders table {
+    font-size: 0.95rem;
+  }
+
+  .orders th,
+  .orders td {
+    padding: 8px;
+  }
+}
