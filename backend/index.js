@@ -10,7 +10,7 @@ const cookieParser = require("cookie-parser");
 const User = require("./model/userModel");
 const HoldingsModel = require("./model/HoldingsModel");
 const PositionsModel = require("./model/PositionsModel");
-const {OrdersModel} = require("./model/OrdersModel");
+const { OrdersModel } = require("./model/OrdersModel");
 
 const PORT = process.env.PORT || 3002;
 const uri = process.env.MONGO_URL;
@@ -20,12 +20,24 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['https://zerodha-online-brokerage-plateform.vercel.app', 'https://zerodha-online-brokerage-plateform-two.vercel.app'],
+  origin: [
+    "https://zerodha-online-brokerage-plateform.vercel.app",
+    "https://zerodha-online-brokerage-plateform-two.vercel.app"
+  ],
   credentials: true
 }));
-
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+// Root route for Render test
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
+
+// Optional health check route
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
 // JWT Authentication Middleware
 const authenticateToken = (req, res, next) => {
@@ -60,7 +72,7 @@ app.post("/signup", async (req, res) => {
 
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: false, // Set to true in production
+      secure: false, // Set to true in production with HTTPS
       sameSite: 'strict',
       maxAge: 24 * 60 * 60 * 1000
     });
@@ -123,7 +135,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Get Profile
+// Profile
 app.get("/profile", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("-password");
@@ -143,10 +155,10 @@ app.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// Holdings, Positions, Orders
+// Holdings
 app.get("/allHoldings", authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userid;  // fix here
+    const userId = req.user.userId; // FIXED from userid
     const allHoldings = await HoldingsModel.find({ userId });
     res.json(allHoldings);
   } catch (error) {
@@ -155,21 +167,21 @@ app.get("/allHoldings", authenticateToken, async (req, res) => {
   }
 });
 
-
-
+// Positions
 app.get("/allPositions", authenticateToken, async (req, res) => {
   const allPositions = await PositionsModel.find({});
   res.json(allPositions);
 });
 
+// New Order
 app.post("/newOrder", authenticateToken, async (req, res) => {
   try {
     const { name, qty, price, mode } = req.body;
-    console.log("New order data:", req.body, "User:", req.user);
 
     if (!name || !qty || !price || !mode) {
       return res.status(400).json({ message: "Missing required fields" });
     }
+
     if (!req.user || !req.user.userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -190,6 +202,7 @@ app.post("/newOrder", authenticateToken, async (req, res) => {
   }
 });
 
+// All Orders
 app.get("/allOrders", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -200,7 +213,6 @@ app.get("/allOrders", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
-
 
 // Start server
 mongoose.connect(uri)
