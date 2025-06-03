@@ -20,9 +20,10 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: ['https://zerodha-online-brokerage-plateform.vercel.app', 'https://zerodha-online-brokerage-plateform-two.vercel.app'],
   credentials: true
 }));
+
 app.use(bodyParser.json());
 app.use(cookieParser());
 
