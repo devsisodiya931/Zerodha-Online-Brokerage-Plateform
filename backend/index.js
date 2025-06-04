@@ -21,8 +21,8 @@ const app = express();
 // 🛡️ CORS configuration
 const allowedOrigins = [
   "https://zerodha-online-brokerage-plateform.vercel.app",
-  "https://zerodha-online-brokerage-plateform-two.vercel.app",
-  "https://zerodha-online-brokerage-pla-git-72ca48-dev-kumar-rays-projects.vercel.app"
+  "https://zerodha-online-brokerage-pla-git-72ca48-dev-kumar-rays-projects.vercel.app",
+  "https://zerodha-online-brokerage-plateform-five.vercel.app" // ✅ Add any new one here
 ];
 
 app.use(
