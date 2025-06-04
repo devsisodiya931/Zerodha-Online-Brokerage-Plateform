@@ -12,7 +12,7 @@ const Holdings = () => {
   useEffect(() => {
     const fetchHoldings = async () => {
       try {
-        const response = await axios.get("http://localhost:3002/allHoldings", {
+        const response = await axios.get("https://zerodha-online-brokerage-plateform-1.onrender.com/allHoldings", {
           withCredentials: true,
         });
 

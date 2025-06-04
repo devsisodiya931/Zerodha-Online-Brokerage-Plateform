@@ -10,7 +10,7 @@ const Menu = () => {
 
   useEffect(() => {
     // Fetch user profile data
-    axios.get("http://localhost:3002/profile", { withCredentials: true })
+    axios.get("https://zerodha-online-brokerage-plateform-1.onrender.com/profile", { withCredentials: true })
       .then(res => {
         setProfile(res.data);
       })
@@ -28,8 +28,8 @@ const Menu = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:3002/logout", {}, { withCredentials: true });
-      window.location.href = "http://localhost:3000/"; // redirect to frontend login
+      await axios.post("https://zerodha-online-brokerage-plateform-1.onrender.com/logout", {}, { withCredentials: true });
+      window.location.href = "https://zerodha-online-brokerage-plateform.vercel.app/"; // redirect to frontend login
     } catch (err) {
       console.error("Logout error:", err);
     }

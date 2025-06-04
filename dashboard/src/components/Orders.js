@@ -10,7 +10,7 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get("http://localhost:3002/allOrders", {
+        const res = await axios.get("https://zerodha-online-brokerage-plateform-1.onrender.com/allOrders", {
           withCredentials: true,
         });
         setOrders(res.data);

@@ -15,10 +15,10 @@ const Signup = () => {
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
-    setInputValue({
-      ...inputValue,
+    setInputValue((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   const handleError = (err) =>
@@ -28,22 +28,18 @@ const Signup = () => {
 
   const handleSuccess = (msg) =>
     toast.success(msg, {
-      position: "bottom-right",
+      position: "bottom-left",
     });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const BASE_URL = process.env.REACT_APP_BASE_URL;
+
     try {
       const { data } = await axios.post(
-        "http://localhost:3002/signup", // ✅ Correct backend port
-        {
-          email,
-          username,
-          password,
-        },
-        {
-          withCredentials: true,
-        }
+        `${BASE_URL}/signup`,
+        { email, username, password },
+        { withCredentials: true }
       );
 
       const { success, message, token, user } = data;
@@ -51,13 +47,13 @@ const Signup = () => {
       if (success) {
         handleSuccess(message);
 
-        // ✅ Store auth token and user info in localStorage
+        // Store token & user info
         localStorage.setItem("authToken", token);
         localStorage.setItem("userData", JSON.stringify(user));
 
-        // ✅ Redirect to Dashboard (adjust if needed)
+        // Redirect to deployed frontend dashboard
         setTimeout(() => {
-          window.location.href = "http://localhost:3001/";
+          window.location.href = "https://zerodha-online-brokerage-plateform-two.vercel.app/";
         }, 1000);
       } else {
         handleError(message);

@@ -32,9 +32,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const BASE_URL = process.env.REACT_APP_BASE_URL;
+
     try {
       const { data } = await axios.post(
-        "http://localhost:3002/login", // Updated backend port to 3002 (consistent with signup)
+        `${BASE_URL}/login`,
         { email, password },
         { withCredentials: true }
       );
@@ -48,9 +50,9 @@ const Login = () => {
         localStorage.setItem("authToken", token);
         localStorage.setItem("userData", JSON.stringify(user));
 
-        // Redirect to dashboard after a short delay
+        // ✅ Redirect to deployed dashboard
         setTimeout(() => {
-          window.location.href = "http://localhost:3001/";
+          window.location.href = "https://zerodha-online-brokerage-plateform-two.vercel.app/";
         }, 1000);
       } else {
         handleError(message);
@@ -60,7 +62,6 @@ const Login = () => {
       handleError(error.response?.data?.message || "Login failed");
     }
 
-  
     setInputValue({
       email: "",
       password: "",
