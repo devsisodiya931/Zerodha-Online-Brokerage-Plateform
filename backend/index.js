@@ -166,7 +166,7 @@ app.post("/logout", (req, res) => {
 // 📊 Holdings
 app.get("/allHoldings", authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.userid;
     const allHoldings = await HoldingsModel.find({ userId });
     res.json(allHoldings);
   } catch (error) {
