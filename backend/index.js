@@ -18,30 +18,41 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: [
-    "https://zerodha-online-brokerage-plateform.vercel.app",
-    "https://zerodha-online-brokerage-plateform-two.vercel.app"
-  ],
-  credentials: true
-}));
+// 🛡️ CORS configuration
+const allowedOrigins = [
+  "https://zerodha-online-brokerage-plateform.vercel.app",
+  "https://zerodha-online-brokerage-plateform-two.vercel.app",
+  "https://zerodha-online-brokerage-pla-git-72ca48-dev-kumar-rays-projects.vercel.app"
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps, Postman)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// Required for parsing body and cookies
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// Root route for Render test
-app.get("/", (req, res) => {
-  res.send("Backend is running");
-});
+// 🌐 Root & health check
+app.get("/", (req, res) => res.send("Backend is running"));
+app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-// Optional health check route
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
-// JWT Authentication Middleware
+// 🔐 JWT Auth middleware
 const authenticateToken = (req, res, next) => {
-  const token = req.cookies?.authToken || req.headers['authorization']?.split(' ')[1];
+  const token =
+    req.cookies?.authToken || req.headers["authorization"]?.split(" ")[1];
   if (!token) return res.status(401).json({ message: "Unauthorized" });
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
@@ -51,61 +62,18 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Signup
+// 📝 Signup
 app.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (existingUser)
       return res.status(400).json({ message: "User already exists" });
-    }
 
-    const user = new User({ username, email, password });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, email, password: hashedPassword });
     await user.save();
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.cookie('authToken', token, {
-      httpOnly: true,
-      secure: false, // Set to true in production with HTTPS
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "User created successfully",
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Login
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },
@@ -115,8 +83,48 @@ app.post("/login", async (req, res) => {
 
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "strict",
+      secure: true, // ✅ Set to true for HTTPS
+      sameSite: "None", // ✅ Required when `secure: true` and cross-origin
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 🔑 Login
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -135,7 +143,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Profile
+// 👤 Profile
 app.get("/profile", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("-password");
@@ -145,46 +153,40 @@ app.get("/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// Logout
+// 🚪 Logout
 app.post("/logout", (req, res) => {
   res.clearCookie("authToken", {
     httpOnly: true,
-    sameSite: 'strict',
-    secure: false
+    sameSite: "None",
+    secure: true,
   });
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// Holdings
+// 📊 Holdings
 app.get("/allHoldings", authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId; // FIXED from userid
+    const userId = req.user.userId;
     const allHoldings = await HoldingsModel.find({ userId });
     res.json(allHoldings);
   } catch (error) {
-    console.error("Error fetching holdings:", error.message);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Positions
+// 📈 Positions
 app.get("/allPositions", authenticateToken, async (req, res) => {
   const allPositions = await PositionsModel.find({});
   res.json(allPositions);
 });
 
-// New Order
+// 📥 New Order
 app.post("/newOrder", authenticateToken, async (req, res) => {
   try {
     const { name, qty, price, mode } = req.body;
 
-    if (!name || !qty || !price || !mode) {
+    if (!name || !qty || !price || !mode)
       return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    if (!req.user || !req.user.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
 
     const newOrder = new OrdersModel({
       name,
@@ -197,32 +199,31 @@ app.post("/newOrder", authenticateToken, async (req, res) => {
     await newOrder.save();
     res.json({ message: "Order saved!" });
   } catch (error) {
-    console.error("Error saving order:", error);
-    res.status(500).json({ message: "Failed to save order", error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
-// All Orders
+// 📃 All Orders
 app.get("/allOrders", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const orders = await OrdersModel.find({ userId });
     res.json(orders);
   } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Start server
-mongoose.connect(uri)
+// 🚀 Start server
+mongoose
+  .connect(uri)
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
       console.log("MongoDB connected");
     });
   })
-  .catch(err => console.error("DB connection error:", err));
+  .catch((err) => console.error("DB connection error:", err));
 
 
 // app.get("/addHoldings", async (req, res) => {

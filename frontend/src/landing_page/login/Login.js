@@ -52,7 +52,8 @@ const Login = () => {
 
         // ✅ Redirect to deployed dashboard
         setTimeout(() => {
-          window.location.href = "https://zerodha-online-brokerage-plateform-two.vercel.app/";
+          window.location.href =
+            "https://zerodha-online-brokerage-plateform-two.vercel.app/";
         }, 1000);
       } else {
         handleError(message);
