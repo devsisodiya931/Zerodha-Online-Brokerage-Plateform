@@ -53,7 +53,7 @@ const Signup = () => {
 
         // ✅ Redirect to Dashboard (adjust if needed)
         setTimeout(() => {
-          window.location.href = "http://localhost:3001/";
+          window.location.href = "https://zerodha-online-brokerage-plateform-five.vercel.app/";
         }, 1000);
       } else {
         handleError(message);
