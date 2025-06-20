@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     minlength: 3,
     maxlength: 30
+    // No regex — user can use any combination
   },
   email: { 
     type: String, 
@@ -17,11 +18,13 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
     match: [/.+\@.+\..+/, 'Please enter a valid email']
+    // Simple email format check
   },
   password: { 
     type: String, 
     required: true,
     minlength: 6
+    // No pattern enforcement — just minimum length
   },
   createdAt: {
     type: Date,
