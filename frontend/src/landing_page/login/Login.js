@@ -50,10 +50,9 @@ const Login = () => {
         localStorage.setItem("authToken", token);
         localStorage.setItem("userData", JSON.stringify(user));
 
-        // ✅ Redirect to deployed dashboard
+        // Redirect to dashboard after a short delay
         setTimeout(() => {
-          window.location.href =
-            "https://zerodha-online-brokerage-plateform-five.vercel.app/";
+          window.location.href = "http://localhost:3001/";
         }, 1000);
       } else {
         handleError(message);

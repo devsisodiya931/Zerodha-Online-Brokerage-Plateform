@@ -15,10 +15,10 @@ const Signup = () => {
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
-    setInputValue((prev) => ({
-      ...prev,
+    setInputValue({
+      ...inputValue,
       [name]: value,
-    }));
+    });
   };
 
   const handleError = (err) =>
@@ -28,7 +28,7 @@ const Signup = () => {
 
   const handleSuccess = (msg) =>
     toast.success(msg, {
-      position: "bottom-left",
+      position: "bottom-right",
     });
 
   const handleSubmit = async (e) => {
@@ -47,14 +47,13 @@ const Signup = () => {
       if (success) {
         handleSuccess(message);
 
-        // Store token & user info
+        // ✅ Store auth token and user info in localStorage
         localStorage.setItem("authToken", token);
         localStorage.setItem("userData", JSON.stringify(user));
 
-        // Redirect to deployed frontend dashboard
+        // ✅ Redirect to Dashboard (adjust if needed)
         setTimeout(() => {
-          window.location.href =
-            "https://zerodha-online-brokerage-plateform-five.vercel.app/";
+          window.location.href = "http://localhost:3001/";
         }, 1000);
       } else {
         handleError(message);
