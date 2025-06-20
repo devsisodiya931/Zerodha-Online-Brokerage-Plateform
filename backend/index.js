@@ -22,22 +22,22 @@ const app = express();
 const allowedOrigins = [
   "https://zerodha-online-brokerage-plateform.vercel.app",
   "https://zerodha-online-brokerage-pla-git-72ca48-dev-kumar-rays-projects.vercel.app",
-  "https://zerodha-online-brokerage-plateform-five.vercel.app" // ✅ Add any new one here
+  "https://zerodha-online-brokerage-plateform-five.vercel.app",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (like mobile apps, Postman)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(new Error("Not allowed by CORS: " + origin));
       }
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 200, // ✅ Add this
   })
 );
 
@@ -56,23 +56,24 @@ const authenticateToken = (req, res, next) => {
   if (!token) return res.status(401).json({ message: "Unauthorized" });
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: "Token invalid or expired" });
+    if (err)
+      return res.status(403).json({ message: "Token invalid or expired" });
     req.user = user;
     next();
   });
 };
 
-// 📝 Signup
+// Signup
 app.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
-    if (existingUser)
+    if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
+    }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, email, password: hashedPassword });
+    const user = new User({ username, email, password });
     await user.save();
 
     const token = jwt.sign(
@@ -83,8 +84,8 @@ app.post("/signup", async (req, res) => {
 
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: true, // ✅ Set to true for HTTPS
-      sameSite: "None", // ✅ Required when `secure: true` and cross-origin
+      secure: false, // Set to true in production
+      sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -103,17 +104,20 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// 🔑 Login
+// Login
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },
@@ -123,8 +127,8 @@ app.post("/login", async (req, res) => {
 
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "None",
+      secure: false,
+      sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -143,7 +147,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// 👤 Profile
+// Get Profile
 app.get("/profile", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("-password");
@@ -153,40 +157,46 @@ app.get("/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// 🚪 Logout
+// Logout
 app.post("/logout", (req, res) => {
   res.clearCookie("authToken", {
     httpOnly: true,
-    sameSite: "None",
-    secure: true,
+    sameSite: "strict",
+    secure: false,
   });
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// 📊 Holdings
+// Holdings, Positions, Orders
 app.get("/allHoldings", authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.userid; // fix here
     const allHoldings = await HoldingsModel.find({ userId });
     res.json(allHoldings);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error fetching holdings:", error.message);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 });
 
-// 📈 Positions
 app.get("/allPositions", authenticateToken, async (req, res) => {
   const allPositions = await PositionsModel.find({});
   res.json(allPositions);
 });
 
-// 📥 New Order
 app.post("/newOrder", authenticateToken, async (req, res) => {
   try {
     const { name, qty, price, mode } = req.body;
+    console.log("New order data:", req.body, "User:", req.user);
 
-    if (!name || !qty || !price || !mode)
+    if (!name || !qty || !price || !mode) {
       return res.status(400).json({ message: "Missing required fields" });
+    }
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const newOrder = new OrdersModel({
       name,
@@ -197,24 +207,29 @@ app.post("/newOrder", authenticateToken, async (req, res) => {
     });
 
     await newOrder.save();
-    res.json({ message: "Order saved!" });
+    res.status(201).json({ message: "Order saved!" }); 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error saving order:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to place order", error: error.message });
   }
 });
 
-// 📃 All Orders
 app.get("/allOrders", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const orders = await OrdersModel.find({ userId });
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error fetching orders:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 });
 
-// 🚀 Start server
+// Start server
 mongoose
   .connect(uri)
   .then(() => {

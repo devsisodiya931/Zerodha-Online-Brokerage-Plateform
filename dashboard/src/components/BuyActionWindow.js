@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import GeneralContext from "./GeneralContext";
 import "./BuyActionWindow.css";
@@ -7,6 +7,9 @@ import "./BuyActionWindow.css";
 const BuyActionWindow = ({ uid }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
   const [stockPrice, setStockPrice] = useState(0.0);
+  const navigate = useNavigate();
+
+  const { closeBuyWindow } = useContext(GeneralContext);
 
   const handleBuyClick = async () => {
     try {
@@ -22,9 +25,21 @@ const BuyActionWindow = ({ uid }) => {
           withCredentials: true, // Send cookies for auth
         }
       );
-      GeneralContext.closeBuyWindow();
+
+      if (response.status === 201 && response.data.message === "Order saved!") {
+        alert("✅ Order placed successfully!");
+        closeBuyWindow();
+
+        navigate("/orders"); // Go to orders page
+      } else {
+        alert("⚠️ Order placed, but unexpected response");
+      }
     } catch (error) {
-      alert("Failed to place order");
+      console.error("Error placing order:", error);
+      alert(
+        "❌ Failed to place order: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
@@ -61,7 +76,7 @@ const BuyActionWindow = ({ uid }) => {
       </div>
 
       <div className="buttons">
-        <span>Margin required ₹140.65</span>
+        <span>Margin required ₹{(stockQuantity * stockPrice).toFixed(2)}</span>
         <div>
           <Link className="btn btn-blue" onClick={handleBuyClick}>
             Buy
