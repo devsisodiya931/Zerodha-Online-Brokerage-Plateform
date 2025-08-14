@@ -170,7 +170,7 @@ app.post("/logout", (req, res) => {
 // Holdings, Positions, Orders
 app.get("/allHoldings", authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId; // fix here
+    const userId = req.user.userid; // fix here
     const allHoldings = await HoldingsModel.find({ userId });
     res.json(allHoldings);
   } catch (error) {
@@ -239,5 +239,6 @@ mongoose
     });
   })
   .catch((err) => console.error("DB connection error:", err));
+
 
 
