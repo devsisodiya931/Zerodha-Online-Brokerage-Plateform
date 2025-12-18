@@ -21,6 +21,7 @@ const app = express();
 // 🛡️ CORS configuration
 const allowedOrigins = [
   "https://zerodha-online-brokerage-plateform.vercel.app",
+  "https://zerodha-online-brokerage-plateform-esat-eq04j3qn7.vercel.app",
   "https://zerodha-online-brokerage-pla-git-72ca48-dev-kumar-rays-projects.vercel.app",
   "https://zerodha-online-brokerage-plateform-five.vercel.app" // ✅ Add any new one here
 ];
@@ -239,6 +240,7 @@ mongoose
     });
   })
   .catch((err) => console.error("DB connection error:", err));
+
 
 
 
