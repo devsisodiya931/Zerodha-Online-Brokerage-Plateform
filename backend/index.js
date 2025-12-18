@@ -26,11 +26,21 @@ const allowedOrigins = [
   "https://zerodha-online-brokerage-plateform-five.vercel.app" // ✅ Add any new one here
 ];
 
-app.use(cors({
-  origin: true,        // allow all Vercel URLs
-  credentials: false   // 🔥 header JWT, no cookies
-}));
-
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS: " + origin));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 200, // ✅ Add this
+  })
+);
 
 // Required for parsing body and cookies
 app.use(bodyParser.json());
@@ -41,25 +51,18 @@ app.get("/", (req, res) => res.send("Backend is running"));
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // 🔐 JWT Auth middleware
-// 🔐 JWT Auth middleware (HEADER BASED – FINAL)
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token =
+    req.cookies?.authToken || req.headers["authorization"]?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // { userId, email }
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err)
+      return res.status(403).json({ message: "Token invalid or expired" });
+    req.user = user;
     next();
-  } catch (err) {
-    return res.status(403).json({ message: "Invalid or expired token" });
-  }
+  });
 };
-
 
 // Signup
 app.post("/signup", async (req, res) => {
@@ -80,12 +83,12 @@ app.post("/signup", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-   // res.cookie("authToken", token, {
-    //  httpOnly: true,
-    //  secure: true, // Set to true in production
-     // sameSite: "none",
-   //   maxAge: 24 * 60 * 60 * 1000,
-   // });
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: true, // Set to true in production
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     res.status(201).json({
       success: true,
@@ -123,12 +126,12 @@ app.post("/login", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-//    res.cookie("authToken", token, {
-//      httpOnly: true,
-//      secure: true,
-//      sameSite: "none",
- //     maxAge: 24 * 60 * 60 * 1000,
-//    });
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     res.json({
       success: true,
@@ -237,9 +240,6 @@ mongoose
     });
   })
   .catch((err) => console.error("DB connection error:", err));
-
-
-
 
 
 
