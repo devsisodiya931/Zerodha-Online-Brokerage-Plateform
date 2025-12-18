@@ -9,31 +9,19 @@ const Holdings = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await axios.get(
-        "https://zerodha-online-brokerage-plateform-1.onrender.com/profile",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setProfile(res.data);
-    } catch (err) {
-      console.error("Failed to load profile:", err);
-      if (err.response?.status === 401) {
-        navigate("/login");
-      }
-    }
-  };
-
-  fetchProfile();
-}, [navigate]);
+  useEffect(() => { const fetchHoldings = async () => { 
+    try { const response = await axios.get("https://zerodha-online-brokerage-plateform-1.onrender.com/allHoldings", {
+      withCredentials: true,
+    }); 
+         setAllHoldings(response.data); 
+        } catch (err) { console.error("Error fetching holdings:", err); 
+                       setError(err.message); 
+                       if (err.response?.status === 401) { 
+                         navigate("/login"); 
+                       } } 
+    finally { setLoading(false); } };
+                   fetchHoldings(); }, 
+            [navigate]);
 
 
   // Calculate totals
