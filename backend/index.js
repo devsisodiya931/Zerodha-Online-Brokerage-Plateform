@@ -41,18 +41,25 @@ app.get("/", (req, res) => res.send("Backend is running"));
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // 🔐 JWT Auth middleware
+// 🔐 JWT Auth middleware (HEADER BASED – FINAL)
 const authenticateToken = (req, res, next) => {
-  const token =
-    req.cookies?.authToken || req.headers["authorization"]?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  const authHeader = req.headers.authorization;
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err)
-      return res.status(403).json({ message: "Token invalid or expired" });
-    req.user = user;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // { userId, email }
     next();
-  });
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid or expired token" });
+  }
 };
+
 
 // Signup
 app.post("/signup", async (req, res) => {
@@ -230,6 +237,7 @@ mongoose
     });
   })
   .catch((err) => console.error("DB connection error:", err));
+
 
 
 
