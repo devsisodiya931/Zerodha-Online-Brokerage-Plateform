@@ -9,16 +9,31 @@ const Menu = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch user profile data
-    axios.get("https://zerodha-online-brokerage-plateform-1.onrender.com/profile", { withCredentials: true })
-      .then(res => {
-        setProfile(res.data);
-      })
-      .catch(err => {
-        console.error("Failed to load profile:", err);
-        // Optionally redirect to login
-      });
-  }, []);
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "https://zerodha-online-brokerage-plateform-1.onrender.com/profile",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setProfile(res.data);
+    } catch (err) {
+      console.error("Failed to load profile:", err);
+      if (err.response?.status === 401) {
+        navigate("/login");
+      }
+    }
+  };
+
+  fetchProfile();
+}, [navigate]);
+
 
   const handleMenuClick = (index) => setSelectedMenu(index);
 
