@@ -26,21 +26,11 @@ const allowedOrigins = [
   "https://zerodha-online-brokerage-plateform-five.vercel.app" // ✅ Add any new one here
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS: " + origin));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 200, // ✅ Add this
-  })
-);
+app.use(cors({
+  origin: true,        // allow all Vercel URLs
+  credentials: false   // 🔥 header JWT, no cookies
+}));
+
 
 // Required for parsing body and cookies
 app.use(bodyParser.json());
@@ -83,12 +73,12 @@ app.post("/signup", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    res.cookie("authToken", token, {
-      httpOnly: true,
-      secure: true, // Set to true in production
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+   // res.cookie("authToken", token, {
+    //  httpOnly: true,
+    //  secure: true, // Set to true in production
+     // sameSite: "none",
+   //   maxAge: 24 * 60 * 60 * 1000,
+   // });
 
     res.status(201).json({
       success: true,
@@ -126,12 +116,12 @@ app.post("/login", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    res.cookie("authToken", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+//    res.cookie("authToken", token, {
+//      httpOnly: true,
+//      secure: true,
+//      sameSite: "none",
+ //     maxAge: 24 * 60 * 60 * 1000,
+//    });
 
     res.json({
       success: true,
@@ -240,6 +230,7 @@ mongoose
     });
   })
   .catch((err) => console.error("DB connection error:", err));
+
 
 
 
