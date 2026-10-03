@@ -6,7 +6,7 @@ const Menu = () => {
   const [selectedMenu, setSelectedMenu] = useState(0);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [profile, setProfile] = useState(null);
-  const navigate = useNavigate();
+ // const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch user profile data
