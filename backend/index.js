@@ -22,25 +22,32 @@ const app = express();
 const allowedOrigins = [
   "https://zerodha-online-brokerage-plateform.vercel.app",
   "https://zerodha-online-brokerage-plateform-esat-eq04j3qn7.vercel.app",
+  "https://zerodha-online-brokerage-plateform-five.vercel.app",
   "https://zerodha-online-brokerage-pla-git-72ca48-dev-kumar-rays-projects.vercel.app",
-  "https://zerodha-online-brokerage-plateform-five.vercel.app" // ✅ Add any new one here
+  "http://localhost:3000",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS: " + origin));
+      // Allow requests without origin (Postman, server-to-server, etc.)
+      if (!origin) {
+        return callback(null, true);
       }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 200, // ✅ Add this
   })
 );
+
+app.options("*", cors());
 
 // Required for parsing body and cookies
 app.use(bodyParser.json());
