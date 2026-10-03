@@ -4,23 +4,25 @@ import { Link } from "react-router-dom";
 function Table() {
   return (
     <div className="container mt-5">
-      <ul className="nav nav-tabs mb-3">
-        <li className="nav-item">
-          <a className="nav-link active" href="#">
-            Equity
-          </a>
-        </li>
-        <li className="nav-item">
-          <a className="nav-link" href="#">
-            Currency
-          </a>
-        </li>
-        <li className="nav-item">
-          <a className="nav-link" href="#">
-            Commodity
-          </a>
-        </li>
-      </ul>
+     <ul className="nav nav-tabs mb-3">
+  <li className="nav-item">
+    <button className="nav-link active" type="button">
+      Equity
+    </button>
+  </li>
+
+  <li className="nav-item">
+    <button className="nav-link" type="button">
+      Currency
+    </button>
+  </li>
+
+  <li className="nav-item">
+    <button className="nav-link" type="button">
+      Commodity
+    </button>
+  </li>
+</ul>
 
       <div className="table-responsive">
         <table className="table table-bordered text-center align-middle">
